@@ -1,0 +1,8 @@
+rootProject.name = 'gvosy_backend'
+include 'gateway-service'
+include 'auth-service'
+include 'notes-service'
+include 'ai-service'
+include 'notification-service'
+include 'eureka-service'
+
