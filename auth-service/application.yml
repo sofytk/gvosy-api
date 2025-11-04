@@ -13,8 +13,12 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: update #dev mode
     show-sql: true
+
+jwt:
+  secret: 0138e7073e0bb1592fa0aa4e5ec1d0c3bb8691fcb9a50f47
+  expiration: 900000
 
 eureka:
   client:
