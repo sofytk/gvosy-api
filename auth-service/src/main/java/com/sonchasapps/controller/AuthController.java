@@ -23,7 +23,13 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponce> register(@RequestBody RegisterRequest request) {
-        return ResponseEntity.ok(service.register(request));
+        long start = System.currentTimeMillis();
+        System.out.println("AuthController register: Start " + start);
+        AuthResponce response = service.register(request);
+        long end = System.currentTimeMillis();
+        System.out.println("AuthService register: End" + end);
+        System.out.println("TIME AuthController: " + (end-start) + " ms");
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/login")

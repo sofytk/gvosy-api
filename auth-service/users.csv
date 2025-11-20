@@ -1,0 +1,2 @@
+id,assistant_id,created_at,email,is_premium,name,password_hash
+f956b98f-7025-4360-937b-ab8f103b0b28,,2025-11-04 21:25:00.093816+03,testuser@example.com,f,Test User,$2a$10$daglDK7.NXnPOwmJamdyQ.hrogo1ASweyjMwB9FiZca.cUMz.hcwu

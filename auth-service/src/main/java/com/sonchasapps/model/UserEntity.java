@@ -12,14 +12,19 @@ import java.time.Instant;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @Table(name = "users_database", indexes = {
         @Index(columnList = "email", name = "idx_users_email", unique = true)
 })
 public class UserEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    public UserEntity(String email, String name, String passwordHash) {
+        this.email = email;
+        this.name = name;
+        this.passwordHash = passwordHash;
+    }
 
     @Column(name = "email", nullable = false, unique = true)
     private String email;
@@ -30,18 +35,15 @@ public class UserEntity {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
-    @Builder.Default
     @Column(name = "is_premium", nullable = false)
     private Boolean isPremium = false;
 
     public String getPasswordHash() {
         return passwordHash;
     }
-
     @Column(name = "assistant_id")
     private Long assistant_id;
 
-    @Builder.Default
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 }
