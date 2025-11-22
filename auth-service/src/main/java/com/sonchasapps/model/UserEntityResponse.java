@@ -12,7 +12,6 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserEntityResponse {
-    private String email;
     private String name;
     private String token;
     private Boolean isPremium;

@@ -43,7 +43,7 @@ public class AuthService {
         System.out.println("AuthService register: t2 " + (t2 - t1));
 
 
-        UserEntityResponse userEntityResponse = new UserEntityResponse(user.getEmail(), user.getName(), token, user.getIsPremium());
+        UserEntityResponse userEntityResponse = new UserEntityResponse(user.getName(), token, user.getIsPremium());
         long t3 = System.currentTimeMillis();
         System.out.println("AuthService register: t3 " + (t3 - t2));
 
@@ -62,7 +62,7 @@ public class AuthService {
         }
 
         String token = jwtService.generateToken(user.getEmail());
-        UserEntityResponse userEntityResponse = new UserEntityResponse(user.getEmail(), user.getName(), token, user.getIsPremium());
+        UserEntityResponse userEntityResponse = new UserEntityResponse(user.getName(), token, user.getIsPremium());
         return new AuthResponce(token, userEntityResponse);
     }
 }
