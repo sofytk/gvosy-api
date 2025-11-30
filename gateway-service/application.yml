@@ -4,42 +4,60 @@ server:
 spring:
   application:
     name: gateway-service
-
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
-
       routes:
         - id: auth-service
           uri: lb://auth-service
           predicates:
             - Path=/api/auth/**
+
+        - id: main-service
+          uri: lb://main-service
+          predicates:
+            - Path=/api/assistant/**
           filters:
-            - StripPrefix=1
+            - name: JwtAuth
 
         - id: ai-service
           uri: lb://ai-service
           predicates:
             - Path=/api/ai/**
           filters:
-            - StripPrefix=1
-
-        - id: notes-service
-          uri: lb://ai-service
-          predicates:
-            - Path=/api/ai/**
-          filters:
-            - StripPrefix=1
+            - name: JwtAuth
 
         - id: notification-service
           uri: lb://notification-service
           predicates:
             - Path=/api/notifications/**
           filters:
-            - StripPrefix=1
+            - name: JwtAuth
+
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: false
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    com.sonchasapps: DEBUG
+    reactor.netty: INFO
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 86400000
 
 eureka:
   client:
@@ -47,4 +65,6 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
-
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30

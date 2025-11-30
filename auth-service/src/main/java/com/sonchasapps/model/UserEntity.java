@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.UUID;
 
 
 @Entity
@@ -17,8 +18,8 @@ import java.time.Instant;
 })
 public class UserEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     public UserEntity(String email, String name, String passwordHash) {
         this.email = email;
@@ -41,6 +42,7 @@ public class UserEntity {
     public String getPasswordHash() {
         return passwordHash;
     }
+
     @Column(name = "assistant_id")
     private Long assistant_id;
 

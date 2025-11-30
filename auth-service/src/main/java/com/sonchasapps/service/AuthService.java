@@ -38,7 +38,7 @@ public class AuthService {
         System.out.println("AuthService register: t1 " + (t1 - start));
 
 
-        String token = jwtService.generateToken(user.getEmail());
+        String token = jwtService.generateToken(user.getId());
         long t2 = System.currentTimeMillis();
         System.out.println("AuthService register: t2 " + (t2 - t1));
 
@@ -55,13 +55,13 @@ public class AuthService {
 
     public AuthResponce login(LogInRequest request) {
         UserEntity user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+                .orElseThrow(() -> new MyException("Пользователь не найден"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new RuntimeException("Неверный пароль");
+            throw new MyException("Неверный пароль");
         }
 
-        String token = jwtService.generateToken(user.getEmail());
+        String token = jwtService.generateToken(user.getId());
         UserEntityResponse userEntityResponse = new UserEntityResponse(user.getName(), token, user.getIsPremium());
         return new AuthResponce(token, userEntityResponse);
     }

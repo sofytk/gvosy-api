@@ -1,4 +1,7 @@
 ./gradlew clean build
 ./gradlew bootRun
 
+./gradlew clean build
+$env:JWT_SECRET="0138e7073e0bb1592fa0aa4e5ec1d0c3bb8691fcb9a50f47"; ./gradlew bootRun
+
 

@@ -1,8 +1,6 @@
 package com.sonchasapps.service;
 
-
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -12,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -23,10 +22,10 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private long jwtExpirationMs;
 
-
-    public String generateToken(String email) {
+    public String generateToken(UUID userId) {
+        System.out.println("Token: " + userId.toString());
         return Jwts.builder()
-                .setSubject(email)
+                .setSubject(userId.toString())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -34,26 +33,22 @@ public class JwtService {
     }
 
 
-    public String extractEmail(String token) {
+    public String extractUserId(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
-
-    public boolean isTokenValid(String token, String email) {
-        final String extractedEmail = extractEmail(token);
-        return (email.equals(extractedEmail)) && !isTokenExpired(token);
+    public boolean isTokenValid(String token, String userId) {
+        final String extractedUserId = extractUserId(token);
+        return (userId.equals(extractedUserId)) && !isTokenExpired(token);
     }
-
 
     private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
 
-
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
-
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
