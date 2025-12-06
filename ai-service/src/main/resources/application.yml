@@ -1,0 +1,25 @@
+service:
+  port: 8080
+
+spring:
+  application:
+    name: ai-service
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:kafka:9092}
+    consumer:
+      group-id: ai-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-service:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true

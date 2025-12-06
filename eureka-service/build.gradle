@@ -29,7 +29,10 @@ dependencyManagement {
 
 dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server'
+    implementation 'org.hibernate.validator:hibernate-validator'
+    implementation 'org.glassfish:jakarta.el:4.0.2'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
 }
 
 test {

@@ -12,10 +12,14 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/assistant")
-@RequiredArgsConstructor
+
 public class AssistantController {
 
     private final AssistantService service;
+
+    public AssistantController(AssistantService service) {
+        this.service = service;
+    }
 
     @PostMapping("/add")
     public ResponseEntity<AssistantResponse> addAssistant(
