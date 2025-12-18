@@ -1,9 +1,9 @@
 package com.sonchasapps.service;
 
-import com.sonchasapps.dto.MessageDTO;
-import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 public class WebSocketPushService {
@@ -14,8 +14,9 @@ public class WebSocketPushService {
         this.template = template;
     }
 
-    public void sendToAssistant(String assistantId, MessageDTO dto) {
-        template.convertAndSend("/topic/assistant/" + assistantId, dto);
+    public void sendToAssistant(UUID assistantId, Object data) {
+        template.convertAndSend("/topic/assistant/" + assistantId, data);
+        System.out.println("Sent WebSocket to assistant: " + assistantId);
     }
 }
 

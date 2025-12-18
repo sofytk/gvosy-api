@@ -1,128 +1,96 @@
 package com.sonchasapps.service;
 
-
-
 import com.sonchasapps.dto.KafkaAiResponse;
 import com.sonchasapps.dto.KafkaAiRequest;
+import com.sonchasapps.kafka.AiResponseProducer;
 import com.sonchasapps.llm.LLMClient;
-import org.springframework.kafka.core.KafkaTemplate;
+import com.sonchasapps.llm.PromtGeneration;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class AiProcessingService {
 
-    private final AudioTranscriberService transcriber;
-    private final NoteClassifier classifier;
-    private final LLMClient llmClient;
-    private final KafkaTemplate<String, KafkaAiResponse> kafkaTemplate;
-    private final String analyzerModel;
-
-    public AiProcessingService(AudioTranscriberService transcriber,
-                               NoteClassifier classifier,
-                               LLMClient llmClient,
-                               KafkaTemplate<String, KafkaAiResponse> kafkaTemplate,
-                               @org.springframework.beans.factory.annotation.Value("${llm.analyzerModel:llama-3-8b}") String analyzerModel) {
-        this.transcriber = transcriber;
-        this.classifier = classifier;
-        this.llmClient = llmClient;
-        this.kafkaTemplate = kafkaTemplate;
-        this.analyzerModel = analyzerModel;
-    }
+    private final AudioTranscriberService transcribeAudio;
+    private final PendingTranscriptionStore pendingStore;
+    private final LLMClient llm;
+    private final PromtGeneration promtBuilder;
+    private final AiResponseProducer producer;
 
     public void process(KafkaAiRequest request) {
         try {
-            String audioUrl = request.audioURL();
-            String text = transcriber.transcribeFromUrl(audioUrl);
+            System.out.println("====== PROCESSING REQUEST ======");
+            System.out.println("Message ID: " + request.messageId());
+            System.out.println("User ID: " + request.userId());
+            System.out.println("Audio URL: " + request.audioUrl());
+            System.out.println("Mode: " + transcribeAudio.getMode());
+            System.out.println("================================");
 
-            String type = classifier.classify(text);
+            String operationId = transcribeAudio.startTranscription(request.audioUrl());
 
-            String analyzePrompt = switch (type) {
-                case "weekly_plan" -> buildWeeklyPlanPrompt(text);
-                case "project_idea" -> buildProjectIdeaPrompt(text);
-                case "todo_list" -> buildTodoPrompt(text);
-                case "journal" -> buildJournalPrompt(text);
-                case "task" -> buildTaskPrompt(text);
-                default -> buildGenericPrompt(text);
-            };
+            if (transcribeAudio.isCallbackEnabled()) {
+                pendingStore.store(operationId, request);
+                System.out.println("Stored for webhook callback: " + operationId);
+            }
+            else {
+                System.out.println("Using polling mode for: " + operationId);
+                processWithPolling(request, operationId);
+            }
 
-            String summary = llmClient.generate(analyzePrompt, analyzerModel);
+        } catch (Exception e) {
+            System.err.println("Failed to process request: " + e.getMessage());
+            e.printStackTrace();
+            sendErrorResponse(request, e.getMessage());
+        }
+    }
+    private void processWithPolling(KafkaAiRequest request, String operationId) {
+        transcribeAudio.waitForCompletion(operationId)
+                .thenAccept(text -> {
+                    System.out.println("Transcription completed: " + text);
+                    processWithLLM(request, text);
+                })
+                .exceptionally(ex -> {
+                    System.err.println("Transcription failed: " + ex.getMessage());
+                    ex.printStackTrace();
+                    sendErrorResponse(request, ex.getMessage());
+                    return null;
+                });
+    }
 
-            Map<String, Object> metadata = new HashMap<>();
-            metadata.put("processedAt", Instant.now().toString());
-            metadata.put("type", type);
+    public void processWithLLM(KafkaAiRequest request, String transcribedText) {
+        try {
+            System.out.println("Processing with LLM...");
+            String sex = request.assistantSex() ? "female" : "male";
+            String assistantJson = llm.classify(
+                    promtBuilder.buildPrompt(
+                            transcribedText,
+                            request.assistantDescription(),
+                            String.valueOf(request.assistantAge()),
+                            sex
+                    )
+            );
 
             KafkaAiResponse response = new KafkaAiResponse(
                     request.messageId(),
                     request.userId(),
-                    request.assistantId(),
-                    text,
-                    summary,
-                    type,
-                    metadata
+                    transcribedText,
+                    assistantJson
             );
 
-            kafkaTemplate.send("audio.transcription.response", response);
-        } catch (Exception e) {
-            e.printStackTrace();
+            producer.sendResponse(response);
+            System.out.println("Sent final response for message: " + request.messageId());
 
+        } catch (Exception e) {
+            System.err.println("Error processing with LLM: " + e.getMessage());
+            e.printStackTrace();
+            sendErrorResponse(request, "LLM processing failed: " + e.getMessage());
         }
     }
 
-    private String buildWeeklyPlanPrompt(String text) {
-        return """
-                Ты — ассистент. Преобразуй следующую запись в структурированный план на неделю.
-                Выдели задачи и распределяй по дням (Monday..Sunday).
-                Дай краткие подзадачи и приоритеты.
-
-                Запись:
-                %s
-                """.formatted(text);
-    }
-
-    private String buildProjectIdeaPrompt(String text) {
-        return """
-                Ты — ассистент. Пользователь озвучил идею проекта.
-                Выдели краткое резюме идеи, цель, 3 ключевые функции, 3 риска, и 5 первых шагов реализации.
-
-                Текст:
-                %s
-                """.formatted(text);
-    }
-
-    private String buildTodoPrompt(String text) {
-        return """
-                Сформируй структурированный список дел (task, priority, estimate).
-                Текст:
-                %s
-                """.formatted(text);
-    }
-
-    private String buildJournalPrompt(String text) {
-        return """
-                Это дневниковая запись. Сформируй краткое резюме эмоций, 3 вопроса для рефлексии и предложи следующий маленький шаг.
-                Текст:
-                %s
-                """.formatted(text);
-    }
-
-    private String buildTaskPrompt(String text) {
-        return """
-                Выдели задачу, разбей на подзадачи с дедлайнами/оценкой сложности.
-                Текст:
-                %s
-                """.formatted(text);
-    }
-
-    private String buildGenericPrompt(String text) {
-        return """
-                Сформируй краткую сводку (summary) из текста и предложи 3 действия.
-                Текст:
-                %s
-                """.formatted(text);
+    private void sendErrorResponse(KafkaAiRequest request, String errorMessage) {
+        System.out.println("Sent error response for message: " + request.messageId());
     }
 }
-

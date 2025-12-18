@@ -33,6 +33,12 @@ public class AssistantService {
         return response;
     }
 
+    public UUID getAssistantIdByUserId(UUID userId) {
+        AssistantEntity assistant = repo.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Assistant not found"));
+        return assistant.getId();
+    }
+
 
     public AssistantResponse getAssistantById(UUID id) {
         AssistantEntity assistant = repo.findById(id)

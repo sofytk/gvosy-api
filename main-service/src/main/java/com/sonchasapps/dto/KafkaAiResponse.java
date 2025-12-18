@@ -5,24 +5,18 @@ import lombok.Data;
 import java.util.Map;
 import java.util.UUID;
 
-@Data
+
 public class KafkaAiResponse {
     private String messageId;
     private UUID userId;
-    private UUID assistanceId;
     private String originalText;
     private String summary;
-    private String type;
-    private Map<String, Object> metadata;
 
-    public KafkaAiResponse(UUID userId, String messageId, UUID assistanceId, String originalText, String summary, String type, Map<String, Object> metadata) {
+    public KafkaAiResponse(UUID userId, String messageId, String originalText, String summary) {
         this.userId = userId;
-        this.assistanceId = assistanceId;
         this.messageId = messageId;
         this.originalText = originalText;
         this.summary = summary;
-        this.type = type;
-        this.metadata = metadata;
     }
     public KafkaAiResponse(){}
 
@@ -42,14 +36,6 @@ public class KafkaAiResponse {
         this.userId = userId;
     }
 
-    public UUID getAssistanceId() {
-        return assistanceId;
-    }
-
-    public void setAssistanceId(UUID assistanceId) {
-        this.assistanceId = assistanceId;
-    }
-
     public String getOriginalText() {
         return originalText;
     }
@@ -64,22 +50,6 @@ public class KafkaAiResponse {
 
     public void setSummary(String summary) {
         this.summary = summary;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public Map<String, Object> getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(Map<String, Object> metadata) {
-        this.metadata = metadata;
     }
 }
 

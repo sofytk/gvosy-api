@@ -11,7 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/audio")
+@RequestMapping("/api/assistant/")
 public class AudioController {
 
     private final AudioStorageService audioStorageService;
@@ -22,10 +22,10 @@ public class AudioController {
         this.messageService = messageService;
     }
 
-    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/upload", consumes = MediaType.ALL_VALUE)
     public AudioUploadResponse uploadAudio(
             @RequestHeader(value = "X-User-Id", required = false) String userIdStr,
-            @RequestPart("audio") MultipartFile file,
+            @RequestParam("audio") String file,
             @RequestParam("assistantId") UUID assistantId
     ) {
         System.out.println("=== AssistantController /getAssistant ===");
@@ -41,8 +41,8 @@ public class AudioController {
         } catch (IllegalArgumentException e) {
             System.out.println("ERROR: Invalid UUID format: " + userIdStr);
         }
-
-        String audioId = audioStorageService.store(file);
+        String audioId = file;
+        //String audioId = audioStorageService.store(file);
         MessageDTO msg = messageService.createAudioMessage(userId, assistantId, audioId);
         return new AudioUploadResponse(audioId, msg.id());
     }

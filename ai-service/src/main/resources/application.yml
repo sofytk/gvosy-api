@@ -7,13 +7,22 @@ spring:
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP:kafka:9092}
     consumer:
-      group-id: ai-service-group
+      group-id: ai-service
       auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+#dev
+app:
+  callback:
+    url: ""
+    enabled: false
+  mode: polling
+
+#prod
+#app:
+#  callback:
+#    url: ${CALLBACK_URL:https://api.yourdomain.com/api/stt/webhook}
+#    enabled: ${WEBHOOK_ENABLED:true}
+#  mode: webhook
 
 eureka:
   client:

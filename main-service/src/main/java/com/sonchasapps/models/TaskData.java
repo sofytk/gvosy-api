@@ -1,0 +1,14 @@
+package com.sonchasapps.models;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class TaskData {
+    private String taskName;
+    private String deadline;
+    private String priority;
+}

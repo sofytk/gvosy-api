@@ -56,7 +56,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
       - MONGODB_URI=${MONGO_URI}
-      - KAFKA_BROKER=${KAFKA_BROKER}
+      - KAFKA_BROKER=${KAFKA_BOOTSTRAP}
       - EUREKA_SERVER=http://eureka-service:8761/eureka/
     networks:
       - gvosy
@@ -68,8 +68,10 @@ services:
       - kafka
       - eureka-service
     environment:
-      - KAFKA_BROKER=${KAFKA_BROKER}
+      - KAFKA_BROKER=${KAFKA_BOOTSTRAP}
       - EUREKA_SERVER=http://eureka-service:8761/eureka/
+      - OLLAMA_API=${OLLAMA_API}
+      - YANDEX_API=${YANDEX_API}
     networks:
       - gvosy
 #
@@ -98,7 +100,7 @@ services:
 
   mongo:
     image: mongo:6
-    container_name: mongo
+    container_name: mongodb
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}

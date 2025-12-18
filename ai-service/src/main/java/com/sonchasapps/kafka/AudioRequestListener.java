@@ -15,9 +15,21 @@ public class AudioRequestListener {
         this.processingService = processingService;
     }
 
-    @KafkaListener(topics = "audio.transcription.request", groupId = "ai-service-group", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = "audio.transcription.request",
+            groupId = "ai-service",
+            containerFactory = "kafkaListenerContainerFactory")
     public void listen(KafkaAiRequest request) {
-        processingService.process(request);
+        try {
+            System.out.println("====== RECEIVED KAFKA MESSAGE ======");
+            System.out.println("Message ID: " + request.messageId());
+            System.out.println("User ID: " + request.userId());
+            System.out.println("Audio URL: " + request.audioUrl());
+            System.out.println("====================================");
+            processingService.process(request);
+
+        }catch(Exception e){
+            System.out.println("======LISTEN KAFKA ERROR ====== \n" + e.getMessage());
+        }
     }
 }
 

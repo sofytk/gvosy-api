@@ -1,18 +1,28 @@
 package com.sonchasapps.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.UUID;
+
+
 
 public class KafkaAudioRequest {
 
     private String messageId;
     private UUID userId;
-    private UUID assistanceId;
+    String assistantDescription;
+    int assistantAge;
+    boolean assistantSex;
     private String audioUrl;
 
-    public KafkaAudioRequest(String messageId, UUID userId, UUID assistanceId, String audioUrl) {
+    public KafkaAudioRequest(String messageId, String assistantDescription, UUID userId, int assistantAge, boolean assistantSex, String audioUrl) {
         this.messageId = messageId;
+        this.assistantDescription = assistantDescription;
         this.userId = userId;
-        this.assistanceId = assistanceId;
+        this.assistantAge = assistantAge;
+        this.assistantSex = assistantSex;
         this.audioUrl = audioUrl;
     }
 
@@ -23,12 +33,28 @@ public class KafkaAudioRequest {
         return messageId;
     }
 
-    public UUID getAssistanceId() {
-        return assistanceId;
+    public String getAssistantDescription() {
+        return assistantDescription;
     }
 
-    public void setAssistanceId(UUID assistanceId) {
-        this.assistanceId = assistanceId;
+    public void setAssistantDescription(String assistantDescription) {
+        this.assistantDescription = assistantDescription;
+    }
+
+    public int getAssistantAge() {
+        return assistantAge;
+    }
+
+    public void setAssistantAge(int assistantAge) {
+        this.assistantAge = assistantAge;
+    }
+
+    public boolean getAssistantSex() {
+        return assistantSex;
+    }
+
+    public void setAssistantSex(boolean assistantSex) {
+        this.assistantSex = assistantSex;
     }
 
     public void setMessageId(String messageId) {

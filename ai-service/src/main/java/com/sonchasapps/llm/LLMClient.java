@@ -1,63 +1,43 @@
 package com.sonchasapps.llm;
 
+import okhttp3.*;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 @Component
 public class LLMClient {
 
-    private final WebClient webClient;
-    private final String provider;
-    public LLMClient(@Value("${llm.baseUrl:http://localhost:11434}") String baseUrl,
-                     @Value("${llm.provider:ollama}") String provider) {
-        this.webClient = WebClient.builder().baseUrl(baseUrl).build();
-        this.provider = provider;
-    }
+    private final OkHttpClient http = new OkHttpClient();
+    private static final String OLLAMA_URL = "https://ollama.com/api/chat";
+    @Value("${OLLAMA_API:apikey}")
+    private String apiKey;
 
-    public String generate(String prompt, String model) {
-        if ("ollama".equalsIgnoreCase(provider)) {
-            return callOllama(prompt, model);
-        } else {
-            return callGenericWebUi(prompt, model);
+    public String classify(String prompt) {
+        try {
+            JSONObject body = new JSONObject()
+                    .put("model", "gpt-oss:120b-cloud")
+                    .put("stream", false)
+                    .put("messages", new org.json.JSONArray()
+                            .put(new JSONObject()
+                                    .put("role", "user")
+                                    .put("content", prompt)));
+
+            Request request = new Request.Builder()
+                    .url(OLLAMA_URL)
+                    .addHeader("Authorization", "Bearer " + apiKey)
+                    .post(RequestBody.create(
+                            body.toString(),
+                            MediaType.parse("application/json")
+                    ))
+                    .build();
+
+            Response resp = http.newCall(request).execute();
+            JSONObject json = new JSONObject(resp.body().string());
+            return json.getJSONObject("message").getString("content");
+
+        } catch (Exception e) {
+            throw new RuntimeException("LLM error: " + e.getMessage(), e);
         }
     }
-
-    private String callOllama(String prompt, String model) {
-        Mono<OllamaResp> resp = webClient.post()
-                .uri("/api/generate")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(new OllamaReq(model, prompt))
-                .retrieve()
-                .bodyToMono(OllamaResp.class);
-        OllamaResp r = resp.block();
-        return r != null ? r.getText() : "";
-    }
-
-    private String callGenericWebUi(String prompt, String model) {
-        Mono<WebUiResp> resp = webClient.post()
-                .uri("/api/v1/generate")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(new WebUiReq(prompt, model))
-                .retrieve()
-                .bodyToMono(WebUiResp.class);
-        WebUiResp r = resp.block();
-        return r != null ? r.getText() : "";
-    }
-
-    private static class OllamaReq {
-        public String model;
-        public String prompt;
-        public OllamaReq(String model, String prompt) { this.model = model; this.prompt = prompt; }
-    }
-    private static class OllamaResp {
-        private String text;
-        public String getText(){ return text; }
-        public void setText(String text){ this.text = text; }
-    }
-
-    private static class WebUiReq { public String inputs; public WebUiReq(String inputs, String model){ this.inputs = inputs; } }
-    private static class WebUiResp { private String generated_text; public String getText(){ return generated_text; } public void setGenerated_text(String t){ this.generated_text = t; } }
 }

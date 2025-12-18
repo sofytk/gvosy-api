@@ -1,86 +1,78 @@
 package com.sonchasapps.models;
 
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.mongodb.core.mapping.Document;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
-import java.util.Map;
+import java.time.LocalDate;
 import java.util.UUID;
 
-@Document("notes")
+@Entity
+@Table(name = "notes", indexes = {
+        @Index(name = "idx_user_id", columnList = "user_id"),
+        @Index(name = "idx_message_id", columnList = "message_id"),
+        @Index(name = "idx_user_type", columnList = "user_id,type")
+})
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class NoteEntity {
 
     @Id
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
+    @Column(nullable = false)
     private UUID userId;
-    private String type;
+
+    @Column(nullable = false, unique = true)
+    private String messageId;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private NoteType type;
+
+    @Column(nullable = false)
     private String title;
+
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    private Map<String, Object> metadata;
+    @Column(columnDefinition = "TEXT")
+    private String assistantReply;
+
+    @Column(columnDefinition = "JSONB")
+    @JdbcTypeCode(SqlTypes.JSON)
+    private String metadata;
+
+    @Column(columnDefinition = "TEXT")
+    private String summary;
+
+    @Column
+    private LocalDate noteDate;
+
+    @Column
+    private String mood;
+
+    @Column(nullable = false)
     private Instant createdAt;
 
-    public UUID getUserId() {
-        return userId;
+    @Column
+    private Instant updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
     }
 
-    public void setUserId(UUID userId) {
-        this.userId = userId;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public Map<String, Object> getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(Map<String, Object> metadata) {
-        this.metadata = metadata;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = Instant.now();
     }
 }
-
