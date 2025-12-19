@@ -1,28 +1,36 @@
 package com.sonchasapps.dto;
 
-import com.sonchasapps.models.MessageEntity;
+import com.sonchasapps.models.messages.MessageEntity;
+import com.sonchasapps.models.messages.MessageRole;
+import com.sonchasapps.models.messages.MessageStatus;
+
 import java.time.Instant;
 import java.util.UUID;
 
 public record MessageDTO(
         String id,
-        UUID assistantId,
         UUID userId,
-        String type,
+        String conversationId,
+        MessageRole role,
         String content,
-        String audioId,
+        String audioUrl,
+        MessageStatus status,
+        UUID assistantId,
+        Long noteId,
         Instant createdAt
 ) {
     public static MessageDTO fromEntity(MessageEntity e) {
         return new MessageDTO(
                 e.getId(),
-                e.getAssistantId(),
                 e.getUserId(),
-                e.getType(),
-                e.getText(),
+                e.getConversationId(),
+                e.getRole(),
+                e.getContent(),
                 e.getAudioUrl(),
+                e.getStatus(),
+                e.getAssistantId(),
+                e.getNoteId(),
                 e.getCreatedAt()
         );
     }
 }
-

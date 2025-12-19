@@ -4,9 +4,10 @@ import com.sonchasapps.dto.AssistantResponse;
 import com.sonchasapps.dto.KafkaAiResponse;
 import com.sonchasapps.dto.KafkaAudioRequest;
 import com.sonchasapps.dto.MessageDTO;
-import com.sonchasapps.models.AssistantEntity;
-import com.sonchasapps.models.MessageEntity;
-import com.sonchasapps.repository.MessageRepository;
+import com.sonchasapps.models.messages.MessageEntity;
+import com.sonchasapps.models.messages.MessageRole;
+import com.sonchasapps.models.messages.MessageStatus;
+import com.sonchasapps.repository.mongo.MessageRepository;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -37,50 +38,97 @@ public class MessageService {
         this.noteService = noteService;
     }
 
-    public MessageDTO createAudioMessage(UUID userId, UUID assistantId, String audioId) {
-        MessageEntity entity = new MessageEntity(
-                assistantId,
-                userId,
-                "audio",
-                audioId,
-                Instant.now()
-        );
+    public MessageDTO createAudioMessage(UUID userId,  String audioUrl, String conversationId) {
+        if (conversationId == null || conversationId.isEmpty()) {
+            conversationId = UUID.randomUUID().toString();
+        }
+        UUID assistantId = assistantService.getAssistantIdByUserId(userId);
+        MessageEntity entity = new MessageEntity();
+        entity.setUserId(userId);
+        entity.setConversationId(conversationId);
+        entity.setRole(MessageRole.USER);
+        entity.setContent("");
+        entity.setAudioUrl(audioUrl);
+        entity.setStatus(MessageStatus.PENDING);
+        entity.setAssistantId(assistantId);
+        entity.setCreatedAt(Instant.now());
+
         entity = repository.save(entity);
+        System.out.println("Saved USER message: " + entity.getId());
 
         AssistantResponse assistant = assistantService.getAssistantByUserId(userId);
-
         kafkaTemplate.send("audio.transcription.request", new KafkaAudioRequest(
                 entity.getId(),
                 assistant.getDescription(),
                 userId,
                 assistant.getAge(),
                 assistant.getSex(),
-                audioId
+                audioUrl
         ));
+
+        pushService.sendToAssistant(assistantId, MessageDTO.fromEntity(entity));
 
         return MessageDTO.fromEntity(entity);
     }
 
+
     public void handleAiResponse(KafkaAiResponse ai) {
-        MessageEntity msg = repository.findById(ai.getMessageId())
+        MessageEntity userMessage = repository.findById(ai.getMessageId())
                 .orElseThrow(() -> new RuntimeException("Message not found: " + ai.getMessageId()));
 
-        msg.setType("text");
-        msg.setText(ai.getOriginalText());
-        repository.save(msg);
+        userMessage.setContent(ai.getOriginalText());
+        userMessage.setStatus(MessageStatus.COMPLETED);
+        userMessage.setUpdatedAt(Instant.now());
+        repository.save(userMessage);
 
-        System.out.println("Updated message in MongoDB: " + ai.getMessageId());
 
-        UUID assistantId = assistantService.getAssistantIdByUserId(ai.getUserId());
-        pushService.sendToAssistant(assistantId, MessageDTO.fromEntity(msg));
+        UUID assistantId = userMessage.getAssistantId();
+        pushService.sendToAssistant(assistantId, MessageDTO.fromEntity(userMessage));
 
         noteService.handleNoteCreation(ai);
 
-        System.out.println("Handled AI response for message: " + ai.getMessageId());
+        createAssistantMessage(
+                userMessage.getUserId(),
+                userMessage.getConversationId(),
+                ai.getSummary(),
+                userMessage.getAssistantId()
+        );
     }
 
-    public List<MessageDTO> getMessages(UUID assistantId) {
-        return repository.findByAssistantId(assistantId)
+    public MessageEntity createAssistantMessage(
+            UUID userId,
+            String conversationId,
+            String content,
+            UUID assistantId
+    ) {
+        MessageEntity assistantMessage = new MessageEntity();
+        assistantMessage.setUserId(userId);
+        assistantMessage.setConversationId(conversationId);
+        assistantMessage.setRole(MessageRole.ASSISTANT);
+        assistantMessage.setContent(content);
+        assistantMessage.setStatus(MessageStatus.COMPLETED);
+        assistantMessage.setAssistantId(assistantId);
+        assistantMessage.setCreatedAt(Instant.now());
+
+        assistantMessage = repository.save(assistantMessage);
+
+        System.out.println("Created ASSISTANT message: " + assistantMessage.getId());
+
+        pushService.sendToAssistant(assistantId, MessageDTO.fromEntity(assistantMessage));
+
+        return assistantMessage;
+    }
+
+    public List<MessageDTO> getConversation(String conversationId) {
+        return repository.findByConversationIdOrderByCreatedAtAsc(conversationId)
+                .stream()
+                .map(MessageDTO::fromEntity)
+                .toList();
+    }
+
+
+    public List<MessageDTO> getUserMessages(UUID userId) {
+        return repository.findByUserIdOrderByCreatedAtDesc(userId)
                 .stream()
                 .map(MessageDTO::fromEntity)
                 .toList();

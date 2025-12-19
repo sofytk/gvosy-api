@@ -1,4 +1,4 @@
-package com.sonchasapps.models;
+package com.sonchasapps.models.jpa.assistants;
 
 import jakarta.persistence.*;
 import lombok.*;

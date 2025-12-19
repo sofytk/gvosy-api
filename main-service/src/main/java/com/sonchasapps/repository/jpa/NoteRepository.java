@@ -1,7 +1,7 @@
-package com.sonchasapps.repository;
+package com.sonchasapps.repository.jpa;
 
-import com.sonchasapps.models.NoteEntity;
-import com.sonchasapps.models.NoteType;
+import com.sonchasapps.models.jpa.notes.NoteEntity;
+import com.sonchasapps.models.jpa.notes.NoteType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

@@ -3,10 +3,9 @@ package com.sonchasapps.controller;
 import com.sonchasapps.dto.MessageDTO;
 import com.sonchasapps.service.MessageService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -15,14 +14,33 @@ import java.util.UUID;
 @RequestMapping("/api/messages")
 public class MessageController {
 
-    private final MessageService messageService;
+    @Autowired
+    private MessageService messageService;
 
-    public MessageController(MessageService messageService) {
-        this.messageService = messageService;
+    @PostMapping("/voice_message")
+    public ResponseEntity<MessageDTO> sendVoiceMessage(
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestParam String audioUrl,
+            @RequestParam(required = false) String conversationId
+    ) {
+        MessageDTO message = messageService.createAudioMessage(
+                userId, audioUrl, conversationId
+        );
+        return ResponseEntity.ok(message);
     }
 
-    @GetMapping("/{assistantId}")
-    public List<MessageDTO> getMessages(@PathVariable UUID assistantId) {
-        return messageService.getMessages(assistantId);
+
+    @GetMapping("/conversation/{conversationId}")
+    public ResponseEntity<List<MessageDTO>> getConversation(
+            @PathVariable String conversationId
+    ) {
+        return ResponseEntity.ok(messageService.getConversation(conversationId));
+    }
+
+    @GetMapping("/user")
+    public ResponseEntity<List<MessageDTO>> getUserMessages(
+            @RequestHeader("X-User-Id") UUID userId
+    ) {
+        return ResponseEntity.ok(messageService.getUserMessages(userId));
     }
 }

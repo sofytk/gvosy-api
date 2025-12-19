@@ -1,18 +1,16 @@
 package com.sonchasapps.service;
 
 import com.sonchasapps.dto.KafkaAiResponse;
-import com.sonchasapps.models.NoteCreatedEvent;
-import com.sonchasapps.models.NoteData;
-import com.sonchasapps.models.NoteEntity;
-import com.sonchasapps.models.NoteType;
-import com.sonchasapps.repository.NoteRepository;
+import com.sonchasapps.models.jpa.notes.NoteCreatedEvent;
+import com.sonchasapps.models.jpa.notes.NoteData;
+import com.sonchasapps.models.jpa.notes.NoteEntity;
+import com.sonchasapps.models.jpa.notes.NoteType;
+import com.sonchasapps.repository.jpa.NoteRepository;
 import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
-
-import static com.sonchasapps.models.NoteType.*;
 
 @Service
 public class NoteService {

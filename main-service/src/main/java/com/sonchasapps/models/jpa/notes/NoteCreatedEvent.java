@@ -1,4 +1,4 @@
-package com.sonchasapps.models;
+package com.sonchasapps.models.jpa.notes;
 
 public record NoteCreatedEvent(
         Long noteId,

@@ -19,6 +19,27 @@ spring:
           filters:
             - name: JwtAuth
 
+        - id: main-service-messages
+          uri: lb://main-service
+          predicates:
+            - Path=/api/messages/**
+          filters:
+            - name: JwtAuth
+
+
+        - id: main-service-notes
+          uri: lb://main-service
+          predicates:
+             - Path=/api/notes/**
+          filters:
+              - name: JwtAuth
+
+
+        - id: main-service-ws
+          uri: lb:ws://main-service
+          predicates:
+              - Path=/ws/**
+
 #        - id: ai-service
 #          uri: lb://ai-service
 #          predicates:

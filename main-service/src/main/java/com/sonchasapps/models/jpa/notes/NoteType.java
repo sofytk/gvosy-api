@@ -1,10 +1,4 @@
-package com.sonchasapps.models;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.util.List;
+package com.sonchasapps.models.jpa.notes;
 
 public enum NoteType {
     WEEKLY_PLAN("weekly_plan", "Weekly Plan"),

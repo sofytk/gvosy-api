@@ -22,6 +22,9 @@ spring:
   data:
       mongodb:
        uri: ${MONGODB_URI:mongodb://root:example@mongo:27017/main_db?authSource=admin}
+       auto-index-creation: true
+       field-naming-strategy: org.springframework.data.mapping.model.SnakeCaseFieldNamingStrategy
+       auto-mapping: true
 
 
   kafka:
@@ -32,6 +35,9 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+  websocket:
+    allowed-origins: "*"
 
 eureka:
   client:

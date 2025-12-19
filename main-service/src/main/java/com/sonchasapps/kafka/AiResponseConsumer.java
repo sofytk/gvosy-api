@@ -1,16 +1,12 @@
 package com.sonchasapps.kafka;
 
 import com.sonchasapps.dto.KafkaAiResponse;
-import com.sonchasapps.models.MessageEntity;
-import com.sonchasapps.repository.MessageRepository;
 import com.sonchasapps.service.MessageService;
 import com.sonchasapps.service.NoteService;
 import com.sonchasapps.websocket.WebSocketHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
-
-import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor

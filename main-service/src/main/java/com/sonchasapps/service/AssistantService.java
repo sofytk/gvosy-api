@@ -2,8 +2,8 @@ package com.sonchasapps.service;
 
 import com.sonchasapps.dto.AssistantRequest;
 import com.sonchasapps.dto.AssistantResponse;
-import com.sonchasapps.models.AssistantEntity;
-import com.sonchasapps.repository.AssistantRepository;
+import com.sonchasapps.models.jpa.assistants.AssistantEntity;
+import com.sonchasapps.repository.jpa.AssistantRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
